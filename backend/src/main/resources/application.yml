@@ -1,0 +1,67 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: kyc
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/kyc}
+    username: ${DB_APP_USER:kyc_app}
+    password: ${DB_APP_PASSWORD:kyc_app}
+    hikari:
+      maximum-pool-size: 10
+  flyway:
+    enabled: true
+    user: ${DB_MIGRATION_USER:kyc}
+    password: ${DB_MIGRATION_PASSWORD:kyc}
+    locations: classpath:db/migration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: sfd-kyc
+    access-ttl: PT15M
+    refresh-ttl: P7D
+  security:
+    max-tentatives: 5
+    fenetre-tentatives: PT15M
+    cors-origines: ${CORS_ORIGINS:http://localhost:4200}
+  stockage:
+    chemin: ${KYC_STORAGE_PATH:./data/documents}
+  chiffrement:
+    cle: ${KYC_ENCRYPTION_KEY}
+  documents:
+    taille-max-octets: 5242880
+
+logging:
+  level:
+    root: INFO
+    com.sfd.kyc: INFO
+    org.springframework.security: WARN

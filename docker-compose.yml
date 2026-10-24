@@ -1,0 +1,59 @@
+name: sfd-ekyc
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kyc
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env}
+      DB_MIGRATION_USER: ${DB_MIGRATION_USER:-kyc}
+      DB_MIGRATION_PASSWORD: ${DB_MIGRATION_PASSWORD:?Définir DB_MIGRATION_PASSWORD dans .env}
+      DB_APP_USER: ${DB_APP_USER:-kyc_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Définir DB_APP_PASSWORD dans .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/kyc
+      DB_APP_USER: ${DB_APP_USER:-kyc_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Définir DB_APP_PASSWORD dans .env}
+      DB_MIGRATION_USER: ${DB_MIGRATION_USER:-kyc}
+      DB_MIGRATION_PASSWORD: ${DB_MIGRATION_PASSWORD:?Définir DB_MIGRATION_PASSWORD dans .env}
+      JWT_SECRET: ${JWT_SECRET:?Définir JWT_SECRET dans .env}
+      KYC_ENCRYPTION_KEY: ${KYC_ENCRYPTION_KEY:?Définir KYC_ENCRYPTION_KEY dans .env}
+      KYC_STORAGE_PATH: /app/data/documents
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      TZ: UTC
+    volumes:
+      - kyc-documents:/app/data/documents
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-8081}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  kyc-documents:

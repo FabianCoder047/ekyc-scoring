@@ -1,0 +1,162 @@
+<div class="page">
+  <header class="entete-page">
+    <div>
+      <h1>{{ entete.titre }}</h1>
+      <p>{{ entete.sousTitre }}</p>
+    </div>
+    @if (peutCreer()) {
+      <a mat-flat-button color="primary" routerLink="/agent/dossiers/nouveau">
+        <mat-icon>add</mat-icon>
+        Nouveau dossier
+      </a>
+    }
+  </header>
+
+  <div class="filtres">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="champ-recherche">
+      <mat-label>Rechercher</mat-label>
+      <input
+        matInput
+        [formControl]="filtre.controls.q"
+        placeholder="Nom du client ou numéro de dossier"
+        (keyup.enter)="rechercher()"
+      />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Statut</mat-label>
+      <mat-select [formControl]="filtre.controls.statut" (selectionChange)="changerStatut()">
+        <mat-option value="">Tous les statuts</mat-option>
+        @for (statut of statuts; track statut[0]) {
+          <mat-option [value]="statut[0]">{{ statut[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="rechercher()">
+      <mat-icon>filter_alt</mat-icon>
+      Filtrer
+    </button>
+
+    <span class="espace"></span>
+    <span class="texte-muet texte-petit">{{ total() }} dossier(s)</span>
+  </div>
+
+  <mat-card class="carte">
+    @if (chargement()) {
+      <div class="chargement">
+        <mat-spinner diameter="36" />
+      </div>
+    } @else if (dossiers().length === 0) {
+      <div class="etat-vide">
+        <mat-icon>folder_open</mat-icon>
+        <strong>Aucun dossier à afficher</strong>
+        <span class="texte-petit">
+          @if (estAgent()) {
+            Créez un dossier pour démarrer une vérification KYC.
+          } @else {
+            Aucun dossier ne correspond aux filtres sélectionnés.
+          }
+        </span>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="dossiers()" class="tableau">
+        <ng-container matColumnDef="reference">
+          <th mat-header-cell *matHeaderCellDef>Réf.</th>
+          <td mat-cell *matCellDef="let dossier">
+            <a [routerLink]="['/dossiers', dossier.id]" class="cellule-principale">
+              #{{ dossier.id }}
+            </a>
+            <span class="cellule-secondaire">version {{ dossier.version }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="client">
+          <th mat-header-cell *matHeaderCellDef>Client</th>
+          <td mat-cell *matCellDef="let dossier">
+            <span class="cellule-principale">{{ dossier.clientPrenom }} {{ dossier.clientNom }}</span>
+            <span class="cellule-secondaire">Client #{{ dossier.clientId }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="agence">
+          <th mat-header-cell *matHeaderCellDef>Agence</th>
+          <td mat-cell *matCellDef="let dossier">{{ dossier.agenceNom }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="statut">
+          <th mat-header-cell *matHeaderCellDef>Statut</th>
+          <td mat-cell *matCellDef="let dossier">
+            <span [class]="classeStatut(dossier.statut)">{{ libelleStatut(dossier.statut) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="risque">
+          <th mat-header-cell *matHeaderCellDef>Risque</th>
+          <td mat-cell *matCellDef="let dossier">
+            @if (dossier.niveauRisque) {
+              <span [class]="classeRisque(dossier.niveauRisque)">
+                {{ libelleRisque(dossier.niveauRisque) }}
+              </span>
+            } @else {
+              <span class="texte-muet">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="piece">
+          <th mat-header-cell *matHeaderCellDef>Pièce</th>
+          <td mat-cell *matCellDef="let dossier">
+            <span class="cellule-principale">{{ libelleTypePiece(dossier.typePiece) }}</span>
+            <span class="cellule-secondaire mono">{{ dossier.numeroPieceMasque }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Activité</th>
+          <td mat-cell *matCellDef="let dossier">
+            <span>{{ formatDate(dossier.soumisLe ?? dossier.creeLe) }}</span>
+            <span class="cellule-secondaire">
+              {{ dossier.soumisLe ? 'Soumis le' : 'Créé le' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let dossier" class="colonne-actions">
+            <div class="actions actions-droite">
+              @if (afficherPriseEnCharge() && dossier.statut === 'SOUMIS') {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  [disabled]="actionEnCours() === dossier.id"
+                  (click)="prendreEnCharge(dossier)"
+                >
+                  Prendre en charge
+                </button>
+              }
+              <a mat-stroked-button [routerLink]="['/dossiers', dossier.id]">
+                {{ afficherDecision() ? 'Instruire' : 'Ouvrir' }}
+              </a>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="colonnes"></tr>
+        <tr mat-row *matRowDef="let row; columns: colonnes"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="total()"
+        [pageSize]="taille()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="changerPage($event)"
+        showFirstLastButtons
+      />
+    }
+  </mat-card>
+</div>

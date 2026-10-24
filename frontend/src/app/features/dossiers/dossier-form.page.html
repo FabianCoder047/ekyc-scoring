@@ -1,0 +1,139 @@
+<div class="page page-etroite">
+  <header class="entete-page">
+    <div>
+      <h1>
+        @if (estCorrection) {
+          Corriger le dossier rejeté
+        } @else if (modification) {
+          Modifier le dossier
+        } @else {
+          Nouveau dossier KYC
+        }
+      </h1>
+      <p>
+        @if (modification) {
+          Les informations d’identité et la situation financière du client.
+        } @else {
+          Sélectionnez un client de votre agence et renseignez sa pièce d’identité.
+        }
+      </p>
+    </div>
+    <a mat-stroked-button [routerLink]="['/agent/dossiers']">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </a>
+  </header>
+
+  @if (estCorrection) {
+    <div class="banniere banniere-attention">
+      <mat-icon>info</mat-icon>
+      <span>
+        Ce dossier a été rejeté. L’enregistrement créera une <strong>nouvelle version</strong> du
+        dossier, qui devra être complétée puis soumise à nouveau. Les documents de la version
+        précédente ne sont pas repris.
+      </span>
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="chargement"><mat-spinner diameter="36" /></div>
+  } @else {
+    <mat-card class="carte">
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="enregistrer()" novalidate>
+          <div class="formulaire">
+            <div class="formulaire-section">Client et pièce d’identité</div>
+
+            <mat-form-field appearance="outline" class="pleine-largeur">
+              <mat-label>Client</mat-label>
+              <mat-select formControlName="clientId">
+                @for (client of clients(); track client.id) {
+                  <mat-option [value]="client.id">
+                    {{ client.prenom }} {{ client.nom }}
+                    @if (client.telephone) {
+                      — {{ client.telephone }}
+                    }
+                  </mat-option>
+                }
+              </mat-select>
+              @if (modification) {
+                <mat-hint>Le client ne peut pas être changé après création.</mat-hint>
+              } @else if (clients().length === 0) {
+                <mat-hint>Aucun client disponible dans votre agence.</mat-hint>
+              }
+              @if (form.controls.clientId.hasError('required')) {
+                <mat-error>Le client est obligatoire.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Type de pièce</mat-label>
+              <mat-select formControlName="typePiece">
+                @for (type of typesPiece; track type[0]) {
+                  <mat-option [value]="type[0]">{{ type[1] }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Numéro de pièce</mat-label>
+              <input matInput formControlName="numeroPiece" maxlength="40" autocomplete="off" />
+              @if (form.controls.numeroPiece.hasError('required')) {
+                <mat-error>Le numéro de pièce est obligatoire.</mat-error>
+              }
+              <mat-hint>Le numéro sera masqué dans les listes et l’audit.</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date d’expiration</mat-label>
+              <input matInput type="date" formControlName="dateExpirationPiece" />
+              @if (form.controls.dateExpirationPiece.hasError('required')) {
+                <mat-error>La date d’expiration est obligatoire.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="formulaire-section">Situation financière</div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Revenu mensuel (FCFA)</mat-label>
+              <input matInput type="number" min="0" formControlName="revenuMensuel" />
+              <mat-hint>Nécessaire au calcul du scoring.</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Charges mensuelles (FCFA)</mat-label>
+              <input matInput type="number" min="0" formControlName="chargesMensuelles" />
+              <mat-hint>Utilisées pour le ratio d’endettement.</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Ancienneté d’activité (mois)</mat-label>
+              <input matInput type="number" min="0" formControlName="ancienneteActiviteMois" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Personnes à charge</mat-label>
+              <input matInput type="number" min="0" formControlName="nbPersonnesCharge" />
+            </mat-form-field>
+          </div>
+
+          <div class="actions actions-droite pied-formulaire">
+            <a mat-button [routerLink]="['/agent/dossiers']">Annuler</a>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="enregistrement() || (!modification && clients().length === 0)"
+            >
+              @if (enregistrement()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                {{ estCorrection ? 'Créer la nouvelle version' : 'Enregistrer' }}
+              }
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

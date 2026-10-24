@@ -1,0 +1,11 @@
+.colonne-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .tableau {
+    display: block;
+    overflow-x: auto;
+  }
+}

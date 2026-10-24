@@ -1,0 +1,34 @@
+.aide-intro {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eaf3fc;
+  color: #0b4d8a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.formulaire-dialogue {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  padding-top: 4px;
+}
+
+.formulaire-dialogue .pleine-largeur {
+  grid-column: 1 / -1;
+}
+
+.formulaire-dialogue mat-form-field {
+  width: 100%;
+}
+
+.bascule-actif {
+  margin: 6px 0 10px;
+}
+
+.erreur {
+  margin: 8px 0 0;
+  color: #a11d2b;
+  font-size: 13px;
+}

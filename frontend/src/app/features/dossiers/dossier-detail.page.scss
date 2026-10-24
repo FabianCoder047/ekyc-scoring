@@ -1,0 +1,141 @@
+.retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  color: #5b6b7f;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.retour:hover {
+  color: #0d5ea8;
+}
+
+.retour mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.entete-dossier {
+  align-items: center;
+}
+
+.titre-dossier {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.titre-dossier h1 {
+  margin: 0 4px 0 0;
+}
+
+.grille-cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.grille-cartes .carte {
+  margin-bottom: 0;
+}
+
+.zone-depot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px dashed #b9c9da;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.zone-depot mat-form-field {
+  width: 230px;
+}
+
+.choix-fichier {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.chronologie {
+  display: grid;
+  gap: 2px;
+}
+
+.evenement {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.evenement-point {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #0d5ea8;
+  box-shadow: 0 0 0 4px #e3f0ff;
+}
+
+.evenement-corps {
+  border-bottom: 1px solid #e5ebf2;
+  padding-bottom: 12px;
+}
+
+.evenement:last-child .evenement-corps {
+  border-bottom: none;
+}
+
+.evenement-entete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.evenement-commentaire {
+  margin: 6px 0 0;
+  color: #3c4b5e;
+  font-size: 13px;
+}
+
+.scorings-historique {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5ebf2;
+}
+
+.scorings-historique h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ligne-scoring {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+
+@media (max-width: 720px) {
+  .zone-depot {
+    align-items: stretch;
+  }
+
+  .zone-depot mat-form-field {
+    width: 100%;
+  }
+}

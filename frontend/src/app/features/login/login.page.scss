@@ -1,0 +1,242 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  min-height: 100dvh;
+  background: #f2f5f9;
+}
+
+.presentation {
+  display: flex;
+  align-items: center;
+  padding: 56px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(143, 208, 255, 0.22), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(13, 94, 168, 0.35), transparent 55%),
+    linear-gradient(145deg, #0b2238 0%, #0d2b45 45%, #123f66 100%);
+  color: #eef6fc;
+}
+
+.presentation-contenu {
+  max-width: 520px;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 44px;
+  font-size: 26px;
+  letter-spacing: 0.5px;
+}
+
+.logo-sfd {
+  font-weight: 800;
+}
+
+.logo-kyc {
+  font-weight: 300;
+  color: #8fd0ff;
+}
+
+.presentation h1 {
+  margin: 0 0 18px;
+  font-size: 40px;
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+
+.presentation p {
+  margin: 0;
+  color: #b9d2e6;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.points-forts {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.points-forts li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #dbeaf7;
+}
+
+.points-forts mat-icon {
+  color: #8fd0ff;
+}
+
+.panneau {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px;
+}
+
+.carte-login {
+  width: 100%;
+  max-width: 470px;
+  border-radius: 16px !important;
+  border: 1px solid #dde5ee;
+  box-shadow: 0 18px 45px rgba(13, 43, 69, 0.12) !important;
+}
+
+.carte-login mat-card-content {
+  padding: 32px;
+}
+
+.carte-login h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.sous-titre {
+  margin: 6px 0 24px;
+  color: #5b6b7f;
+  font-size: 14px;
+}
+
+.champ-large {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.bouton-connexion {
+  width: 100%;
+  height: 46px;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.erreur {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: #fde4e6;
+  color: #a11d2b;
+  font-size: 13px;
+}
+
+.erreur mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.comptes-demo {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid #e5ebf2;
+}
+
+.titre-demo {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.compte-demo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid #e2e9f1;
+  border-radius: 8px;
+  background: #fbfcfe;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.compte-demo:hover {
+  border-color: #9dc6e8;
+  background: #f3f9ff;
+}
+
+.compte-role {
+  grid-row: span 2;
+  align-self: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e3f0ff;
+  color: #0b5cad;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.compte-email {
+  color: #12263f;
+}
+
+.compte-description {
+  color: #5b6b7f;
+  font-size: 12px;
+}
+
+.mot-de-passe-demo {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #5b6b7f;
+}
+
+.mot-de-passe-demo code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #eef2f7;
+  color: #12263f;
+}
+
+.mention {
+  max-width: 470px;
+  margin: 0;
+  text-align: center;
+  color: #7a8899;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .presentation {
+    padding: 32px 24px;
+  }
+
+  .presentation h1 {
+    font-size: 30px;
+  }
+
+  .points-forts {
+    display: none;
+  }
+
+  .logo {
+    margin-bottom: 20px;
+  }
+}

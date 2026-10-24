@@ -1,0 +1,20 @@
+.champ-date {
+  width: 210px !important;
+}
+
+.hash {
+  color: #5b6b7f;
+  cursor: help;
+}
+
+.colonne-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .tableau {
+    display: block;
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>
+  {{ creation ? 'Nouvelle tranche de scoring' : 'Modifier la tranche' }}
+</h2>
+
+<mat-dialog-content>
+  <p class="aide-intro">
+    Les bornes sont inclusives. Pour éviter les chevauchements, utilisez des valeurs décimales
+    (par exemple 30,0001) entre deux tranches actives.
+  </p>
+
+  <form [formGroup]="form" class="formulaire-dialogue">
+    <mat-form-field appearance="outline" class="pleine-largeur">
+      <mat-label>Critère</mat-label>
+      <mat-select formControlName="critere">
+        @for (critere of criteres; track critere[0]) {
+          <mat-option [value]="critere[0]">{{ critere[1] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Borne minimale</mat-label>
+      <input matInput type="number" step="0.0001" formControlName="borneMin" />
+      <mat-hint>Vide = pas de borne basse.</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Borne maximale</mat-label>
+      <input matInput type="number" step="0.0001" formControlName="borneMax" />
+      <mat-hint>Vide = pas de borne haute.</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Points (0 à 25)</mat-label>
+      <input matInput type="number" min="0" max="25" formControlName="points" />
+      @if (form.controls.points.hasError('min') || form.controls.points.hasError('max')) {
+        <mat-error>Les points doivent être compris entre 0 et 25.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Libellé de la tranche</mat-label>
+      <input matInput formControlName="libelle" maxlength="120" />
+      @if (form.controls.libelle.hasError('required')) {
+        <mat-error>Le libellé est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="pleine-largeur bascule-actif">
+      <mat-slide-toggle formControlName="actif">Tranche active</mat-slide-toggle>
+    </div>
+  </form>
+
+  @if (erreur()) {
+    <p class="erreur">{{ erreur() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="annuler()">Annuler</button>
+  <button mat-flat-button color="primary" type="button" (click)="valider()">
+    {{ creation ? 'Créer la tranche' : 'Enregistrer' }}
+  </button>
+</mat-dialog-actions>

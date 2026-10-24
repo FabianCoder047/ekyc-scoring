@@ -1,0 +1,47 @@
+@if (auth.connecte()) {
+  <header class="app-toolbar">
+    <a class="marque" routerLink="/" aria-label="Accueil e-KYC">
+      <span class="marque-sfd">SFD</span>
+      <span class="marque-kyc">e-KYC</span>
+    </a>
+
+    <nav class="navigation" aria-label="Navigation principale">
+      @for (lien of liens(); track lien.url) {
+        <a
+          class="lien-nav"
+          [routerLink]="lien.url"
+          routerLinkActive="lien-actif"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          {{ lien.libelle }}
+        </a>
+      }
+    </nav>
+
+    <span class="espace"></span>
+
+    @if (auth.utilisateur(); as utilisateur) {
+      <div class="compte">
+        <span class="avatar" aria-hidden="true">{{ initiales(utilisateur.nom, utilisateur.prenom) }}</span>
+        <span class="identite">
+          <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong>
+          <small>{{ libelleRole(utilisateur.role) }}</small>
+        </span>
+        <button
+          mat-icon-button
+          type="button"
+          class="bouton-deconnexion"
+          aria-label="Se déconnecter"
+          title="Se déconnecter"
+          (click)="deconnexion()"
+        >
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    }
+  </header>
+}
+
+<main [class.app-contenu]="auth.connecte()">
+  <router-outlet />
+</main>

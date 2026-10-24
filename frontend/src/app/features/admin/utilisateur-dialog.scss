@@ -1,0 +1,43 @@
+.formulaire-dialogue {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  padding-top: 6px;
+}
+
+.formulaire-dialogue .pleine-largeur {
+  grid-column: 1 / -1;
+}
+
+.formulaire-dialogue mat-form-field {
+  width: 100%;
+}
+
+.rappel-email {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: #f4f7fa;
+  border: 1px solid #e2e9f1;
+}
+
+.rappel-email .libelle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #5b6b7f;
+}
+
+.bascule-actif {
+  margin: 6px 0 10px;
+}
+
+.erreur {
+  margin: 8px 0 0;
+  color: #a11d2b;
+  font-size: 13px;
+}

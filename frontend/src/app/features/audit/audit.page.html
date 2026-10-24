@@ -1,0 +1,169 @@
+<div class="page">
+  <header class="entete-page">
+    <div>
+      <h1>Journal d’audit</h1>
+      <p>
+        Traçabilité horodatée et chaînée de toutes les actions sensibles. Toute altération est
+        détectée par la vérification de la chaîne de hachage.
+      </p>
+    </div>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      [disabled]="verificationEnCours()"
+      (click)="verifier()"
+    >
+      @if (verificationEnCours()) {
+        <mat-spinner diameter="18" />
+      } @else {
+        <mat-icon>verified</mat-icon>
+      }
+      Vérifier la chaîne
+    </button>
+  </header>
+
+  @if (verification(); as resultat) {
+    <div [class]="resultat.valide ? 'banniere banniere-succes' : 'banniere banniere-alerte'">
+      <mat-icon>{{ resultat.valide ? 'verified_user' : 'report_problem' }}</mat-icon>
+      <span>
+        @if (resultat.valide) {
+          Chaîne d’audit valide — <strong>{{ resultat.lignesVerifiees }}</strong> ligne(s)
+          vérifiée(s).
+        } @else {
+          <strong>Chaîne d’audit invalide.</strong>
+          Première ligne en défaut : {{ resultat.premiereLigneInvalide ?? 'inconnue' }}.
+          {{ resultat.lignesVerifiees }} ligne(s) contrôlée(s).
+        }
+      </span>
+    </div>
+  }
+
+  <div class="filtres">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Entité</mat-label>
+      <mat-select [formControl]="filtre.controls.entite">
+        <mat-option value="">Toutes</mat-option>
+        @for (entite of entites; track entite) {
+          <mat-option [value]="entite">{{ entite }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Action</mat-label>
+      <mat-select [formControl]="filtre.controls.action">
+        <mat-option value="">Toutes</mat-option>
+        @for (action of actions; track action) {
+          <mat-option [value]="action">{{ action }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="champ-date">
+      <mat-label>Du</mat-label>
+      <input matInput type="datetime-local" [formControl]="filtre.controls.du" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="champ-date">
+      <mat-label>Au</mat-label>
+      <input matInput type="datetime-local" [formControl]="filtre.controls.au" />
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="filtrer()">
+      <mat-icon>filter_alt</mat-icon>
+      Filtrer
+    </button>
+
+    <button mat-button type="button" (click)="reinitialiser()">Réinitialiser</button>
+
+    <span class="espace"></span>
+    <span class="texte-muet texte-petit">{{ total() }} entrée(s)</span>
+  </div>
+
+  <mat-card class="carte">
+    @if (chargement()) {
+      <div class="chargement"><mat-spinner diameter="36" /></div>
+    } @else if (entrees().length === 0) {
+      <div class="etat-vide">
+        <mat-icon>history</mat-icon>
+        <strong>Aucune entrée d’audit</strong>
+        <span class="texte-petit">Modifiez les filtres pour élargir la recherche.</span>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="entrees()" class="tableau">
+        <ng-container matColumnDef="horodatage">
+          <th mat-header-cell *matHeaderCellDef>Horodatage</th>
+          <td mat-cell *matCellDef="let entree">{{ formatDateHeure(entree.horodatage) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="utilisateur">
+          <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+          <td mat-cell *matCellDef="let entree">
+            @if (entree.utilisateurId) {
+              <span class="cellule-principale">#{{ entree.utilisateurId }}</span>
+              <span class="cellule-secondaire">{{ entree.role ?? '—' }}</span>
+            } @else {
+              <span class="texte-muet">Système</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let entree">
+            <span class="cellule-principale">{{ entree.action }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="entite">
+          <th mat-header-cell *matHeaderCellDef>Entité</th>
+          <td mat-cell *matCellDef="let entree">
+            <span>{{ entree.entiteType }}</span>
+            <span class="cellule-secondaire">
+              {{ entree.entiteId !== null ? '#' + entree.entiteId : '—' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="adresse">
+          <th mat-header-cell *matHeaderCellDef>Adresse IP</th>
+          <td mat-cell *matCellDef="let entree" class="mono">{{ entree.adresseIp ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="hash">
+          <th mat-header-cell *matHeaderCellDef>Empreinte</th>
+          <td mat-cell *matCellDef="let entree">
+            <span class="mono hash" [title]="entree.hash">{{ hashCourt(entree.hash) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="details">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let entree" class="colonne-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="!aDesDetails(entree)"
+              (click)="details(entree)"
+            >
+              Détails
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="colonnes"></tr>
+        <tr mat-row *matRowDef="let row; columns: colonnes"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="total()"
+        [pageSize]="taille()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="changerPage($event)"
+        showFirstLastButtons
+      />
+    }
+  </mat-card>
+</div>

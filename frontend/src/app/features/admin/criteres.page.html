@@ -1,0 +1,101 @@
+<div class="page">
+  <header class="entete-page">
+    <div>
+      <h1>Critères de scoring</h1>
+      <p>
+        Tranches paramétrables utilisées pour calculer le score KYC. Les modifications
+        s’appliquent aux prochains calculs.
+      </p>
+    </div>
+    <button mat-flat-button color="primary" type="button" (click)="creer()">
+      <mat-icon>add</mat-icon>
+      Nouvelle tranche
+    </button>
+  </header>
+
+  <div class="banniere banniere-info">
+    <mat-icon>straighten</mat-icon>
+    <span>
+      Le score (0 à 100) est la somme des points des tranches retenues. Les bornes sont
+      inclusives et la première tranche par borne minimale croissante s’applique. Un client sans
+      historique de remboursement reçoit une valeur neutre de 12 points.
+    </span>
+  </div>
+
+  <mat-card class="carte">
+    @if (chargement()) {
+      <div class="chargement"><mat-spinner diameter="36" /></div>
+    } @else if (criteres().length === 0) {
+      <div class="etat-vide">
+        <mat-icon>tune</mat-icon>
+        <strong>Aucune tranche paramétrée</strong>
+        <span class="texte-petit">Ajoutez des tranches pour permettre le calcul du scoring.</span>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="criteres()" class="tableau">
+        <ng-container matColumnDef="critere">
+          <th mat-header-cell *matHeaderCellDef>Critère</th>
+          <td mat-cell *matCellDef="let critere">
+            <span class="cellule-principale">
+              {{ libelleCritere(critere.critere) }}
+            </span>
+            <span class="cellule-secondaire mono">{{ critere.critere }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="libelle">
+          <th mat-header-cell *matHeaderCellDef>Libellé</th>
+          <td mat-cell *matCellDef="let critere">{{ critere.libelle }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="bornes">
+          <th mat-header-cell *matHeaderCellDef>Intervalle</th>
+          <td mat-cell *matCellDef="let critere">
+            <span class="mono">
+              [{{ borne(critere.borneMin) }} ; {{ borne(critere.borneMax) }}]
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="points">
+          <th mat-header-cell *matHeaderCellDef>Points</th>
+          <td mat-cell *matCellDef="let critere">
+            <strong>{{ critere.points }}</strong>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actif">
+          <th mat-header-cell *matHeaderCellDef>Statut</th>
+          <td mat-cell *matCellDef="let critere">
+            <span [class]="critere.actif ? 'badge badge-valide' : 'badge badge-brouillon'">
+              {{ critere.actif ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let critere" class="colonne-actions">
+            <div class="actions actions-droite">
+              <button mat-stroked-button type="button" (click)="modifier(critere)">
+                Modifier
+              </button>
+              <button
+                mat-button
+                color="warn"
+                type="button"
+                [disabled]="action() === critere.id"
+                (click)="supprimer(critere)"
+              >
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="colonnes"></tr>
+        <tr mat-row *matRowDef="let row; columns: colonnes"></tr>
+      </table>
+    }
+  </mat-card>
+</div>

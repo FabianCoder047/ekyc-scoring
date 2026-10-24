@@ -1,0 +1,407 @@
+<div class="page">
+  @if (chargement()) {
+    <div class="chargement"><mat-spinner diameter="40" /></div>
+  } @else if (dossier(); as d) {
+    <a class="retour" [routerLink]="estAgent() ? '/agent/dossiers' : estAnalyste() ? '/analyste/dossiers' : '/superviseur/dossiers'">
+      <mat-icon>arrow_back</mat-icon>
+      Retour à la liste
+    </a>
+
+    <header class="entete-page entete-dossier">
+      <div>
+        <div class="titre-dossier">
+          <h1>Dossier #{{ d.id }}</h1>
+          <span [class]="classeStatut(d.statut)">{{ libellesStatut[d.statut] }}</span>
+          @if (d.niveauRisque) {
+            <span [class]="classeRisque(d.niveauRisque)">{{ libellesRisque[d.niveauRisque] }}</span>
+          }
+          <span class="badge badge-brouillon">v{{ d.version }}</span>
+        </div>
+        <p>
+          {{ d.clientPrenom }} {{ d.clientNom }} · {{ d.agenceNom }} · créé le
+          {{ formatDateHeure(d.creeLe) }}
+        </p>
+      </div>
+
+      <div class="actions">
+        @if (action()) {
+          <mat-spinner diameter="22" />
+        }
+
+        @if (peutModifier()) {
+          <a mat-stroked-button [routerLink]="['/agent/dossiers', d.id, 'modifier']">
+            <mat-icon>edit</mat-icon>
+            {{ d.statut === 'REJETE' ? 'Corriger' : 'Modifier' }}
+          </a>
+        }
+
+        @if (peutSoumettre()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="action() !== null"
+            (click)="confirmerSoumission()"
+          >
+            <mat-icon>send</mat-icon>
+            Soumettre
+          </button>
+        }
+
+        @if (peutPrendreEnCharge()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="action() !== null"
+            (click)="prendreEnCharge()"
+          >
+            <mat-icon>assignment_ind</mat-icon>
+            Prendre en charge
+          </button>
+        }
+
+        @if (peutScorer()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="action() !== null"
+            (click)="calculerScoring()"
+          >
+            <mat-icon>calculate</mat-icon>
+            Calculer le scoring
+          </button>
+        }
+
+        @if (peutDecider()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="action() !== null"
+            (click)="ouvrirDecision()"
+          >
+            <mat-icon>gavel</mat-icon>
+            Rendre la décision
+          </button>
+        }
+      </div>
+    </header>
+
+    @if (d.statut === 'REJETE' && d.motifRejet) {
+      <div class="banniere banniere-alerte">
+        <mat-icon>block</mat-icon>
+        <span>
+          <strong>Dossier rejeté le {{ formatDateHeure(d.decideLe) }}</strong>
+          @if (d.decidePar) {
+            par {{ d.decidePar.prenom }} {{ d.decidePar.nom }}
+          }
+          — motif : {{ d.motifRejet }}
+        </span>
+      </div>
+    }
+
+    @if (d.statut === 'BROUILLON' && estAgent() && proprietaire()) {
+      <div class="banniere banniere-info">
+        <mat-icon>info</mat-icon>
+        <span>
+          Le dossier doit contenir le <strong>recto</strong> et le <strong>verso</strong> de la pièce
+          d’identité avant sa soumission.
+        </span>
+      </div>
+    }
+
+    <div class="grille-cartes">
+      <mat-card class="carte">
+        <mat-card-header>
+          <mat-card-title>Identité et pièce</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="grille">
+            <div class="donnee">
+              <span class="libelle">Client</span>
+              <span class="valeur">{{ d.clientPrenom }} {{ d.clientNom }}</span>
+              <span class="texte-muet texte-petit">Client #{{ d.clientId }}</span>
+            </div>
+            <div class="donnee">
+              <span class="libelle">Type de pièce</span>
+              <span class="valeur">{{ libellesTypePiece[d.typePiece] }}</span>
+            </div>
+            <div class="donnee">
+              <span class="libelle">Numéro de pièce</span>
+              <span class="valeur mono">{{ d.numeroPiece ?? d.numeroPieceMasque }}</span>
+              @if (d.numeroPiece) {
+                <span class="texte-muet texte-petit">Visible avec votre rôle</span>
+              }
+            </div>
+            <div class="donnee">
+              <span class="libelle">Expiration de la pièce</span>
+              <span class="valeur">{{ formatDate(d.dateExpirationPiece) }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="carte">
+        <mat-card-header>
+          <mat-card-title>Situation financière</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="grille">
+            <div class="donnee">
+              <span class="libelle">Revenu mensuel</span>
+              <span class="valeur">{{ formatMontant(d.revenuMensuel) }}</span>
+            </div>
+            <div class="donnee">
+              <span class="libelle">Charges mensuelles</span>
+              <span class="valeur">{{ formatMontant(d.chargesMensuelles) }}</span>
+            </div>
+            <div class="donnee">
+              <span class="libelle">Ancienneté d’activité</span>
+              <span class="valeur">
+                {{ d.ancienneteActiviteMois !== null && d.ancienneteActiviteMois !== undefined ? d.ancienneteActiviteMois + ' mois' : '—' }}
+              </span>
+            </div>
+            <div class="donnee">
+              <span class="libelle">Personnes à charge</span>
+              <span class="valeur">{{ d.nbPersonnesCharge ?? '—' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="carte">
+      <mat-card-header>
+        <mat-card-title>Suivi du dossier</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="grille">
+          <div class="donnee">
+            <span class="libelle">Créé par</span>
+            <span class="valeur">{{ d.creePar.prenom }} {{ d.creePar.nom }}</span>
+            <span class="texte-muet texte-petit">{{ formatDateHeure(d.creeLe) }}</span>
+          </div>
+          <div class="donnee">
+            <span class="libelle">Soumis par</span>
+            <span class="valeur">
+              {{ d.soumisPar ? d.soumisPar.prenom + ' ' + d.soumisPar.nom : '—' }}
+            </span>
+            <span class="texte-muet texte-petit">{{ formatDateHeure(d.soumisLe) }}</span>
+          </div>
+          <div class="donnee">
+            <span class="libelle">Analyste en charge</span>
+            <span class="valeur">
+              {{ d.assigneA ? d.assigneA.prenom + ' ' + d.assigneA.nom : 'Non assigné' }}
+            </span>
+          </div>
+          <div class="donnee">
+            <span class="libelle">Décision finale</span>
+            <span class="valeur">
+              {{ d.decidePar ? d.decidePar.prenom + ' ' + d.decidePar.nom : 'En attente' }}
+            </span>
+            <span class="texte-muet texte-petit">{{ formatDateHeure(d.decideLe) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="carte">
+      <mat-card-header>
+        <mat-card-title>Pièces justificatives</mat-card-title>
+        <mat-card-subtitle>Documents chiffrés (AES-256-GCM) et vérifiés à chaque lecture.</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (peutDeposer()) {
+          @if (manqueRecto() || manqueVerso()) {
+            <div class="banniere banniere-attention">
+              <mat-icon>upload_file</mat-icon>
+              <span>
+                Pièces manquantes :
+                @if (manqueRecto()) {
+                  recto
+                }
+                @if (manqueRecto() && manqueVerso()) {
+                  et
+                }
+                @if (manqueVerso()) {
+                  verso
+                }
+                de la pièce d’identité.
+              </span>
+            </div>
+          }
+
+          <div class="zone-depot">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Type de document</mat-label>
+              <mat-select [formControl]="formulaireDepot.controls.type">
+                @for (type of typesDocument; track type[0]) {
+                  <mat-option [value]="type[0]">{{ type[1] }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <div class="choix-fichier">
+              <input
+                #champFichier
+                type="file"
+                accept="image/jpeg,image/png,application/pdf"
+                (change)="surFichier($event)"
+              />
+              @if (fichier(); as f) {
+                <span class="texte-petit">{{ f.name }} · {{ formatOctets(f.size) }}</span>
+              } @else {
+                <span class="texte-muet texte-petit">JPEG, PNG ou PDF — 5 Mo maximum.</span>
+              }
+            </div>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              [disabled]="action() !== null || !fichier()"
+              (click)="deposerDocument()"
+            >
+              <mat-icon>cloud_upload</mat-icon>
+              Déposer
+            </button>
+          </div>
+        }
+
+        @if (d.documents.length === 0) {
+          <div class="etat-vide">
+            <mat-icon>description</mat-icon>
+            <strong>Aucun document déposé</strong>
+            <span class="texte-petit">Les pièces justificatives apparaîtront ici.</span>
+          </div>
+        } @else {
+          @for (document of d.documents; track document.id) {
+            <div class="document-ligne">
+              <span class="document-icone">
+                <mat-icon>{{ document.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image' }}</mat-icon>
+              </span>
+              <div class="document-infos">
+                <strong>{{ libellesTypeDocument[document.type] }}</strong>
+                <small>
+                  {{ document.nomOriginal }} · {{ formatOctets(document.tailleOctets) }} ·
+                  déposé le {{ formatDateHeure(document.deposeLe) }}
+                </small>
+              </div>
+              @if (document.remplacePar) {
+                <span class="badge badge-brouillon">Remplacé</span>
+              }
+              @if (peutTelecharger()) {
+                <button mat-stroked-button type="button" (click)="telecharger(document)">
+                  <mat-icon>visibility</mat-icon>
+                  Consulter
+                </button>
+              }
+            </div>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (dernierScoring(); as scoring) {
+      <mat-card class="carte">
+        <mat-card-header>
+          <mat-card-title>Scoring KYC</mat-card-title>
+          <mat-card-subtitle>
+            Calculé par {{ scoring.calculePar.prenom }} {{ scoring.calculePar.nom }} le
+            {{ formatDateHeure(scoring.calculeLe) }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="score-bloc">
+            <div [class]="classePalier(scoring.palier)">
+              {{ scoring.score }}
+              <small>/ 100</small>
+            </div>
+            <div>
+              <span class="badge" [class]="classePalierBadge(scoring.palier)">
+                {{ libellesPalier[scoring.palier] }}
+              </span>
+              <p class="aide">
+                Le score est une aide à la décision. La décision finale reste humaine et
+                motivée.
+              </p>
+            </div>
+          </div>
+
+          <div class="liste-criteres">
+            @for (detail of scoring.detail; track detail.critere) {
+              <div class="critere-ligne">
+                <span class="critere-libelle">
+                  {{ libellesCritere[detail.critere] ?? detail.critere }}
+                  <span class="cellule-secondaire">{{ detail.libelle }}</span>
+                </span>
+                <span class="critere-valeur">
+                  {{ detail.valeur !== null && detail.valeur !== undefined ? detail.valeur : 'non disponible' }}
+                </span>
+                <span class="critere-points">{{ detail.points }} pts</span>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (peutVoirHistorique() && historique(); as hist) {
+      <mat-card class="carte">
+        <mat-card-header>
+          <mat-card-title>Historique du dossier</mat-card-title>
+          <mat-card-subtitle>Décisions et calculs de scoring horodatés.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (hist.decisions.length === 0) {
+            <p class="texte-muet">Aucune décision enregistrée.</p>
+          } @else {
+            <div class="chronologie">
+              @for (decision of hist.decisions; track decision.id) {
+                <div class="evenement">
+                  <span class="evenement-point"></span>
+                  <div class="evenement-corps">
+                    <div class="evenement-entete">
+                      <strong>{{ libellesEtape[decision.etape] ?? decision.etape }}</strong>
+                      <span [class]="classeDecision(decision.decision)">
+                        {{ libellesDecision[decision.decision] ?? decision.decision }}
+                      </span>
+                      <span class="texte-muet texte-petit">
+                        {{ formatDateHeure(decision.creeLe) }} ·
+                        {{ decision.decideur.prenom }} {{ decision.decideur.nom }}
+                      </span>
+                    </div>
+                    @if (decision.commentaire) {
+                      <p class="evenement-commentaire">{{ decision.commentaire }}</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (hist.scorings.length > 0) {
+            <div class="scorings-historique">
+              <h3>Calculs de scoring</h3>
+              @for (scoring of hist.scorings; track scoring.id) {
+                <div class="ligne-scoring">
+                  <span class="mono">#{{ scoring.id }}</span>
+                  <span>{{ scoring.score }}/100</span>
+                  <span [class]="classePalierBadge(scoring.palier)">
+                    {{ libellesPalier[scoring.palier] }}
+                  </span>
+                  <span class="texte-muet texte-petit">
+                    {{ formatDateHeure(scoring.calculeLe) }} —
+                    {{ scoring.calculePar.prenom }} {{ scoring.calculePar.nom }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

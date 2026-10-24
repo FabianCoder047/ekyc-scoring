@@ -1,0 +1,19 @@
+# Secrets et configuration locale
+.env
+
+# Backend
+backend/target/
+backend/data/
+backend/*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/*.log
+
+# Outils et systèmes
+.idea/
+.vscode/
+.DS_Store
+*.iml
